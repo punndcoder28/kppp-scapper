@@ -16,9 +16,9 @@ import anthropic
 log = logging.getLogger(__name__)
 
 MODEL = "claude-haiku-4-5"
-MAX_TOKENS = 2048
+MAX_TOKENS = 800        # ~25 items × ~30 tokens each, with headroom
 BATCH_SIZE = int(os.getenv("TENDER_BATCH_SIZE", "25"))
-MAX_CONCURRENT = 3
+BATCH_DELAY = 4.0       # seconds between batches to stay under 10k TPM
 
 VALID_LABELS = {"lab_equipment", "construction", "other_supply", "low_priority", "skip"}
 
@@ -54,35 +54,15 @@ async def evaluate_tenders(tenders: list[dict]) -> list[dict]:
     client = anthropic.AsyncAnthropic(api_key=api_key)
 
     batches = [tenders[i : i + BATCH_SIZE] for i in range(0, len(tenders), BATCH_SIZE)]
-    log.info(f"Evaluating {len(tenders)} tenders in {len(batches)} batches")
+    log.info(f"Evaluating {len(tenders)} tenders in {len(batches)} batches (sequential, {BATCH_DELAY}s delay)")
 
-    semaphore = asyncio.Semaphore(MAX_CONCURRENT)
-
-    async def bounded(batch: list[dict], offset: int) -> tuple[int, list[dict]]:
-        async with semaphore:
-            result = await _evaluate_batch(client, batch)
-            return offset, result
-
-    tasks = [bounded(batch, i * BATCH_SIZE) for i, batch in enumerate(batches)]
-    raw_results = await asyncio.gather(*tasks, return_exceptions=True)
-
-    evaluations: list[dict | None] = [None] * len(tenders)
-
-    for i, (batch, outcome) in enumerate(zip(batches, raw_results)):
-        offset = i * BATCH_SIZE
-        if isinstance(outcome, Exception):
-            log.warning(f"Batch {i} evaluation failed: {outcome}; defaulting to 'other_supply'")
-            for j in range(len(batch)):
-                evaluations[offset + j] = {"label": "other_supply", "reason": "evaluation error"}
-        else:
-            _, evals = outcome
-            for j, ev in enumerate(evals):
-                evaluations[offset + j] = ev
-
-    # Fill any gaps
-    for i, ev in enumerate(evaluations):
-        if ev is None:
-            evaluations[i] = {"label": "other_supply", "reason": "missing evaluation"}
+    evaluations: list[dict] = []
+    for i, batch in enumerate(batches):
+        if i > 0:
+            await asyncio.sleep(BATCH_DELAY)
+        log.debug(f"Batch {i + 1}/{len(batches)}")
+        result = await _evaluate_batch(client, batch)
+        evaluations.extend(result)
 
     return evaluations
 
