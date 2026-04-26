@@ -48,7 +48,32 @@ def generate_report(
     out_path = REPORTS_DIR / f"{run_date.isoformat()}.html"
     out_path.write_text(html, encoding="utf-8")
     log.info(f"Report written to {out_path}")
+
+    generate_index()
     return out_path
+
+
+def generate_index() -> Path:
+    """Regenerate index.html at the repo root listing all reports."""
+    REPORTS_DIR.mkdir(exist_ok=True)
+    report_files = sorted(REPORTS_DIR.glob("*.html"), reverse=True)
+
+    entries = []
+    for f in report_files:
+        report_date = f.stem  # e.g. "2026-04-26"
+        entries.append({"date": report_date, "path": f"reports/{f.name}"})
+
+    env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)), autoescape=True)
+    template = env.get_template("index.html.j2")
+    html = template.render(
+        entries=entries,
+        generated_at=datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+    )
+
+    index_path = Path(__file__).parent.parent / "index.html"
+    index_path.write_text(html, encoding="utf-8")
+    log.info(f"Index written to {index_path}")
+    return index_path
 
 
 def generate_error_report(run_date: date, primary_error: str, fallback_error: str) -> Path:
