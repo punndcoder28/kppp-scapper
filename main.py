@@ -14,6 +14,7 @@ import asyncio
 import logging
 import sys
 from datetime import date, timedelta
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -26,8 +27,23 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-# Default lookback: 4 days covers Mon→Thu and Thu→Mon windows with a buffer
+LAST_RUN_FILE = Path(__file__).parent / "last_run.txt"
+# Fallback lookback if last_run.txt doesn't exist yet
 DEFAULT_LOOKBACK_DAYS = 4
+
+
+def _read_last_run_date() -> date | None:
+    if LAST_RUN_FILE.exists():
+        try:
+            return date.fromisoformat(LAST_RUN_FILE.read_text().strip())
+        except ValueError:
+            pass
+    return None
+
+
+def _write_last_run_date(run_date: date) -> None:
+    LAST_RUN_FILE.write_text(run_date.isoformat())
+    log.info(f"Updated last_run.txt → {run_date}")
 
 
 async def run(run_date: date, since_date: date, dry_run: bool, no_email: bool) -> int:
@@ -101,6 +117,9 @@ async def run(run_date: date, since_date: date, dry_run: bool, no_email: bool) -
     # ── Step 4: Report ──────────────────────────────────────────────────────
     path = generate_report(run_date, tenders, evaluations, source=source)
     log.info(f"Report written: {path}")
+
+    # ── Step 5: Record successful run date ──────────────────────────────────
+    _write_last_run_date(run_date)
     return 0
 
 
@@ -116,11 +135,15 @@ def main():
     args = parser.parse_args()
 
     run_date = date.fromisoformat(args.date) if args.date else date.today()
-    since_date = (
-        date.fromisoformat(args.since)
-        if args.since
-        else run_date - timedelta(days=DEFAULT_LOOKBACK_DAYS)
-    )
+
+    if args.since:
+        since_date = date.fromisoformat(args.since)
+    elif last := _read_last_run_date():
+        since_date = last
+        log.info(f"Resuming from last successful run: {since_date}")
+    else:
+        since_date = run_date - timedelta(days=DEFAULT_LOOKBACK_DAYS)
+        log.info(f"No last_run.txt found — defaulting to {DEFAULT_LOOKBACK_DAYS} day lookback")
 
     log.info(f"Run date: {run_date}, fetching emails since: {since_date}")
     exit_code = asyncio.run(run(run_date, since_date, args.dry_run, args.no_email))
