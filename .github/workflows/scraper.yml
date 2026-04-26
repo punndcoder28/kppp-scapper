@@ -56,4 +56,4 @@ jobs:
           git checkout -b "$BRANCH"
           git add reports/ last_run.txt index.html
           git diff --cached --quiet || git commit -m "chore(reports): add tender report for $(date +%Y-%m-%d)"
-          git push origin "$BRANCH"
+          git push origin "$BRANCH" --force
