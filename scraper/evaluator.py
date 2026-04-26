@@ -16,9 +16,9 @@ import anthropic
 log = logging.getLogger(__name__)
 
 MODEL = "claude-haiku-4-5"
-MAX_TOKENS = 800        # ~25 items × ~30 tokens each, with headroom
+MAX_TOKENS = 1500       # ~25 items × ~42 tokens each, with headroom
 BATCH_SIZE = int(os.getenv("TENDER_BATCH_SIZE", "25"))
-BATCH_DELAY = 4.0       # seconds between batches to stay under 10k TPM
+BATCH_DELAY = 7.0       # seconds between batches — keeps output under 10k TPM
 
 VALID_LABELS = {"lab_equipment", "construction", "other_supply", "low_priority", "skip"}
 
@@ -99,25 +99,19 @@ def _build_prompt(batch: list[dict]) -> str:
 
 
 def _parse_response(text: str, batch_size: int) -> list[dict]:
-    # Strip markdown code fences if present
     text = text.strip()
-    text = re.sub(r"^```(?:json)?\s*", "", text)
-    text = re.sub(r"\s*```$", "", text)
+
+    # Always extract the JSON array directly — handles fenced and unfenced responses
+    match = re.search(r"\[.*\]", text, re.DOTALL)
+    if not match:
+        log.warning(f"No JSON array found in Claude response; defaulting batch.\nResponse: {text[:300]}")
+        return [{"label": "other_supply", "reason": "parse error"} for _ in range(batch_size)]
 
     try:
-        data = json.loads(text)
-    except json.JSONDecodeError:
-        # Try to extract a JSON array with regex
-        match = re.search(r"\[.*\]", text, re.DOTALL)
-        if match:
-            try:
-                data = json.loads(match.group())
-            except json.JSONDecodeError:
-                log.warning("Could not parse Claude response as JSON; defaulting batch")
-                return [{"label": "other_supply", "reason": "parse error"} for _ in range(batch_size)]
-        else:
-            log.warning("No JSON array found in Claude response; defaulting batch")
-            return [{"label": "other_supply", "reason": "parse error"} for _ in range(batch_size)]
+        data = json.loads(match.group())
+    except json.JSONDecodeError as e:
+        log.warning(f"Could not parse Claude response as JSON ({e}); defaulting batch.\nResponse: {text[:300]}")
+        return [{"label": "other_supply", "reason": "parse error"} for _ in range(batch_size)]
 
     if not isinstance(data, list):
         log.warning("Claude response is not a list; defaulting batch")
