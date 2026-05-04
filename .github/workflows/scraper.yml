@@ -12,7 +12,6 @@ jobs:
 
     permissions:
       contents: write
-      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -59,24 +58,3 @@ jobs:
           git diff --cached --quiet || git commit -m "chore(reports): add tender report for $(date +%Y-%m-%d)"
           git push origin "$BRANCH" --force
 
-      - name: Open pull request
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          BRANCH="report/$(date +%Y-%m-%d)"
-          DATE="$(date +%Y-%m-%d)"
-          # Open PR only if one doesn't already exist for this branch
-          EXISTING=$(gh pr list --head "$BRANCH" --json number --jq length)
-          if [ "$EXISTING" -eq 0 ]; then
-            gh pr create \
-              --title "chore(reports): tender report for $DATE" \
-              --body "Automated tender report for **$DATE**.
-
-          - Tenders scraped from KPPP daily email PDFs
-          - Classified by Claude AI (haiku-4-5)
-          - Merge to publish to GitHub Pages
-
-          **Review the report before merging.**" \
-              --base main \
-              --head "$BRANCH"
-          fi
