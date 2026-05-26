@@ -48,13 +48,21 @@ jobs:
           GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
         run: python main.py
 
-      - name: Commit and push report
+      - name: Push state to main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          BRANCH="report/$(date +%Y-%m-%d)"
+          git pull --rebase origin main
+          git add last_run.txt seen_tenders.json
+          git diff --cached --quiet || git commit -m "chore(state): update scraper state for $(date +%Y-%m-%d)"
+          git push origin main
+
+      - name: Push report branch
+        run: |
+          DATE="$(date +%Y-%m-%d)"
+          BRANCH="report/$DATE"
           git checkout -b "$BRANCH"
-          git add reports/ last_run.txt index.html
-          git diff --cached --quiet || git commit -m "chore(reports): add tender report for $(date +%Y-%m-%d)"
+          git add reports/ index.html
+          git diff --cached --quiet || git commit -m "chore(reports): add tender report for $DATE"
           git push origin "$BRANCH" --force
 

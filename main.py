@@ -11,6 +11,7 @@ Usage:
 
 import argparse
 import asyncio
+import json
 import logging
 import sys
 from datetime import date, timedelta
@@ -28,7 +29,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 LAST_RUN_FILE = Path(__file__).parent / "last_run.txt"
-# Fallback lookback if last_run.txt doesn't exist yet
+SEEN_TENDERS_FILE = Path(__file__).parent / "seen_tenders.json"
 DEFAULT_LOOKBACK_DAYS = 4
 
 
@@ -44,6 +45,20 @@ def _read_last_run_date() -> date | None:
 def _write_last_run_date(run_date: date) -> None:
     LAST_RUN_FILE.write_text(run_date.isoformat())
     log.info(f"Updated last_run.txt → {run_date}")
+
+
+def _load_seen_tenders() -> set[str]:
+    if SEEN_TENDERS_FILE.exists():
+        try:
+            return set(json.loads(SEEN_TENDERS_FILE.read_text()))
+        except (json.JSONDecodeError, ValueError):
+            pass
+    return set()
+
+
+def _save_seen_tenders(seen: set[str]) -> None:
+    SEEN_TENDERS_FILE.write_text(json.dumps(sorted(seen), indent=2))
+    log.info(f"Updated seen_tenders.json — {len(seen)} total seen")
 
 
 async def run(run_date: date, since_date: date, dry_run: bool, no_email: bool) -> int:
@@ -98,11 +113,26 @@ async def run(run_date: date, since_date: date, dry_run: bool, no_email: bool) -
         log.info("No tenders found — writing empty report")
         path = generate_empty_report(run_date, source)
         log.info(f"Empty report: {path}")
+        _write_last_run_date(run_date)
         return 0
 
-    log.info(f"Total tenders: {len(tenders)} (source: {source})")
+    # ── Step 3: Deduplicate against previously seen tenders ─────────────────
+    seen = _load_seen_tenders()
+    before = len(tenders)
+    tenders = [t for t in tenders if t.get("tender_number") not in seen]
+    skipped = before - len(tenders)
+    if skipped:
+        log.info(f"Skipped {skipped} already-seen tenders — {len(tenders)} new")
 
-    # ── Step 3: Evaluate ────────────────────────────────────────────────────
+    if not tenders:
+        log.info("All tenders already seen — writing empty report")
+        path = generate_empty_report(run_date, source)
+        _write_last_run_date(run_date)
+        return 0
+
+    log.info(f"Total new tenders: {len(tenders)} (source: {source})")
+
+    # ── Step 4: Evaluate ────────────────────────────────────────────────────
     if dry_run:
         log.info("--dry-run: skipping Claude evaluation")
         evaluations = [{"label": "other_supply", "reason": "dry run"} for _ in tenders]
@@ -114,11 +144,13 @@ async def run(run_date: date, since_date: date, dry_run: bool, no_email: bool) -
         label_counts[ev["label"]] = label_counts.get(ev["label"], 0) + 1
     log.info(f"Evaluation results: {label_counts}")
 
-    # ── Step 4: Report ──────────────────────────────────────────────────────
+    # ── Step 5: Report ──────────────────────────────────────────────────────
     path = generate_report(run_date, tenders, evaluations, source=source)
     log.info(f"Report written: {path}")
 
-    # ── Step 5: Record successful run date ──────────────────────────────────
+    # ── Step 6: Persist state ───────────────────────────────────────────────
+    seen.update(t["tender_number"] for t in tenders if t.get("tender_number"))
+    _save_seen_tenders(seen)
     _write_last_run_date(run_date)
     return 0
 
@@ -128,7 +160,7 @@ def main():
     parser.add_argument("--date", help="Run date (YYYY-MM-DD), defaults to today")
     parser.add_argument(
         "--since",
-        help="Fetch emails since this date (YYYY-MM-DD), defaults to 4 days ago",
+        help="Fetch emails since this date (YYYY-MM-DD), defaults to last run date",
     )
     parser.add_argument("--dry-run", action="store_true", help="Skip Claude evaluation")
     parser.add_argument("--no-email", action="store_true", help="Skip email, use web scraper only")
