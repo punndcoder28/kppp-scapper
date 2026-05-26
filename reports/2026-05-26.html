@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Karnataka Tenders — {{ run_date }}</title>
+  <title>Karnataka Tenders — 2026-05-26</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f7fa; color: #1a1a2e; }
@@ -87,20 +87,20 @@
   <div style="margin-bottom:0.75rem"><a href="../index.html" style="color:rgba(255,255,255,0.75);font-size:0.85rem;text-decoration:none;">← All Reports</a></div>
   <h1>Karnataka Government Tenders</h1>
   <div class="meta">
-    <div class="meta-item">Date: <strong>{{ run_date }}</strong></div>
-    <div class="meta-item">Total scraped: <strong>{{ total }}</strong></div>
-    <div class="meta-item">Source: <strong>{{ source }}</strong></div>
-    <div class="meta-item">Generated: <strong>{{ generated_at }}</strong></div>
+    <div class="meta-item">Date: <strong>2026-05-26</strong></div>
+    <div class="meta-item">Total scraped: <strong>3</strong></div>
+    <div class="meta-item">Source: <strong>email</strong></div>
+    <div class="meta-item">Generated: <strong>2026-05-26 07:01 UTC</strong></div>
   </div>
   <div class="pills">
-    <span class="pill pill-lab">{{ counts.lab_equipment }} Lab Equipment</span>
-    <span class="pill pill-construction">{{ counts.construction }} Construction</span>
-    <span class="pill pill-other">{{ counts.other_supply }} Other Supply</span>
-    <span class="pill pill-low">{{ counts.low_priority }} Low Priority</span>
+    <span class="pill pill-lab">1 Lab Equipment</span>
+    <span class="pill pill-construction">1 Construction</span>
+    <span class="pill pill-other">0 Other Supply</span>
+    <span class="pill pill-low">1 Low Priority</span>
   </div>
 </div>
 
-{# ── Filter bar ── #}
+
 <div class="filter-bar">
   <div class="filter-inner">
 
@@ -155,13 +155,13 @@
 
 <div class="container">
 
-  {# ── Lab Equipment ── #}
+  
   <div class="section section-lab" data-section="lab_equipment">
     <div class="section-header">
       <span class="section-title">Lab Equipment Tenders</span>
-      <span class="badge badge-lab">{{ sections.lab_equipment | length }}</span>
+      <span class="badge badge-lab">1</span>
     </div>
-    {% if sections.lab_equipment %}
+    
     <table>
       <thead>
         <tr>
@@ -174,43 +174,41 @@
         </tr>
       </thead>
       <tbody>
-        {% for t in sections.lab_equipment %}
+        
         <tr data-label="lab_equipment"
-            data-dept="{{ t.department | lower }}"
-            data-district="{{ t.district | lower }}"
-            data-ecv="{{ t.ecv or '' }}"
-            data-deadline="{{ t.deadline or '' }}"
-            data-search="{{ ((t.title or '') ~ ' ' ~ (t.department or '')) | lower }}">
+            data-dept="dept of collegiate education"
+            data-district="bangalore"
+            data-ecv="500000.0"
+            data-deadline="2026-06-10"
+            data-search="supply of microscopes to government college dept of collegiate education">
           <td class="title-cell">
-            {{ t.title or "—" }}
-            {% if t._reason %}<div class="reason">{{ t._reason }}</div>{% endif %}
+            Supply of microscopes to Government College
+            <div class="reason">Supply of scientific instruments to educational institution</div>
           </td>
-          <td class="dept-cell">{{ t.department or "—" }}</td>
-          <td class="ecv {% if t.ecv %}ecv-known{% else %}ecv-unknown{% endif %}">
-            {{ format_ecv(t.ecv) }}
+          <td class="dept-cell">Dept of Collegiate Education</td>
+          <td class="ecv ecv-known">
+            ₹5.00 Lakhs
           </td>
-          <td class="deadline">{{ t.deadline or "—" }}</td>
-          <td class="tender-no">{{ t.tender_number or "—" }}</td>
+          <td class="deadline">2026-06-10</td>
+          <td class="tender-no">TEST/001</td>
           <td>
-            {% if t.nit_url %}<a href="{{ t.nit_url }}" target="_blank">View</a>{% else %}—{% endif %}
+            —
           </td>
         </tr>
-        {% endfor %}
+        
       </tbody>
     </table>
     <p class="section-empty-filter" id="empty-lab_equipment">No lab equipment tenders match the current filters.</p>
-    {% else %}
-    <p class="empty-state">No lab equipment tenders found this run.</p>
-    {% endif %}
+    
   </div>
 
-  {# ── Construction ── #}
+  
   <div class="section section-construction" data-section="construction">
     <div class="section-header">
       <span class="section-title">Construction Tenders</span>
-      <span class="badge badge-construction">{{ sections.construction | length }}</span>
+      <span class="badge badge-construction">1</span>
     </div>
-    {% if sections.construction %}
+    
     <table>
       <thead>
         <tr>
@@ -223,92 +221,52 @@
         </tr>
       </thead>
       <tbody>
-        {% for t in sections.construction %}
+        
         <tr data-label="construction"
-            data-dept="{{ t.department | lower }}"
-            data-district="{{ t.district | lower }}"
-            data-ecv="{{ t.ecv or '' }}"
-            data-deadline="{{ t.deadline or '' }}"
-            data-search="{{ ((t.title or '') ~ ' ' ~ (t.department or '')) | lower }}">
+            data-dept="rdpr division"
+            data-district="mysuru"
+            data-ecv="8200000.0"
+            data-deadline="2026-05-30"
+            data-search="road asphalting works at mysuru taluk rdpr division">
           <td class="title-cell">
-            {{ t.title or "—" }}
-            {% if t._reason %}<div class="reason">{{ t._reason }}</div>{% endif %}
+            Road asphalting works at Mysuru taluk
+            <div class="reason">Road asphalting is civil construction work</div>
           </td>
-          <td class="dept-cell">{{ t.department or "—" }}</td>
-          <td class="ecv {% if t.ecv %}ecv-known{% else %}ecv-unknown{% endif %}">
-            {{ format_ecv(t.ecv) }}
+          <td class="dept-cell">RDPR Division</td>
+          <td class="ecv ecv-known">
+            ₹82.00 Lakhs
           </td>
-          <td class="deadline">{{ t.deadline or "—" }}</td>
-          <td class="tender-no">{{ t.tender_number or "—" }}</td>
+          <td class="deadline">2026-05-30</td>
+          <td class="tender-no">TEST/002</td>
           <td>
-            {% if t.nit_url %}<a href="{{ t.nit_url }}" target="_blank">View</a>{% else %}—{% endif %}
+            —
           </td>
         </tr>
-        {% endfor %}
+        
       </tbody>
     </table>
     <p class="section-empty-filter" id="empty-construction">No construction tenders match the current filters.</p>
-    {% else %}
-    <p class="empty-state">No construction tenders found this run.</p>
-    {% endif %}
+    
   </div>
 
-  {# ── Other Supply ── #}
+  
   <div class="section section-other" data-section="other_supply">
     <div class="section-header">
       <span class="section-title">Other Supply Tenders</span>
-      <span class="badge badge-other">{{ sections.other_supply | length }}</span>
+      <span class="badge badge-other">0</span>
     </div>
-    {% if sections.other_supply %}
-    <table>
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Department</th>
-          <th>ECV</th>
-          <th>Deadline</th>
-          <th>Tender No.</th>
-          <th>Link</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for t in sections.other_supply %}
-        <tr data-label="other_supply"
-            data-dept="{{ t.department | lower }}"
-            data-district="{{ t.district | lower }}"
-            data-ecv="{{ t.ecv or '' }}"
-            data-deadline="{{ t.deadline or '' }}"
-            data-search="{{ ((t.title or '') ~ ' ' ~ (t.department or '')) | lower }}">
-          <td class="title-cell">
-            {{ t.title or "—" }}
-            {% if t._reason %}<div class="reason">{{ t._reason }}</div>{% endif %}
-          </td>
-          <td class="dept-cell">{{ t.department or "—" }}</td>
-          <td class="ecv {% if t.ecv %}ecv-known{% else %}ecv-unknown{% endif %}">
-            {{ format_ecv(t.ecv) }}
-          </td>
-          <td class="deadline">{{ t.deadline or "—" }}</td>
-          <td class="tender-no">{{ t.tender_number or "—" }}</td>
-          <td>
-            {% if t.nit_url %}<a href="{{ t.nit_url }}" target="_blank">View</a>{% else %}—{% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <p class="section-empty-filter" id="empty-other_supply">No other supply tenders match the current filters.</p>
-    {% else %}
+    
     <p class="empty-state">No other supply tenders found this run.</p>
-    {% endif %}
+    
   </div>
 
-  {# ── Low Priority (collapsible) ── #}
-  {% if sections.low_priority %}
+  
+  
   <div class="section section-low low-section" data-section="low_priority">
     <details>
       <summary>
         <strong>Low Priority</strong> (IT equipment, stationery) —
-        {{ sections.low_priority | length }} tenders
+        1 tenders
       </summary>
       <br>
       <table>
@@ -323,39 +281,39 @@
           </tr>
         </thead>
         <tbody>
-          {% for t in sections.low_priority %}
+          
           <tr data-label="low_priority"
-              data-dept="{{ t.department | lower }}"
-              data-district="{{ t.district | lower }}"
-              data-ecv="{{ t.ecv or '' }}"
-              data-deadline="{{ t.deadline or '' }}"
-              data-search="{{ ((t.title or '') ~ ' ' ~ (t.department or '')) | lower }}">
+              data-dept="e-governance dept"
+              data-district="bangalore"
+              data-ecv=""
+              data-deadline="2026-06-05"
+              data-search="supply of computers to government offices e-governance dept">
             <td class="title-cell">
-              {{ t.title or "—" }}
-              {% if t._reason %}<div class="reason">{{ t._reason }}</div>{% endif %}
+              Supply of computers to government offices
+              <div class="reason">IT equipment supply</div>
             </td>
-            <td class="dept-cell">{{ t.department or "—" }}</td>
-            <td class="ecv {% if t.ecv %}ecv-known{% else %}ecv-unknown{% endif %}">
-              {{ format_ecv(t.ecv) }}
+            <td class="dept-cell">e-Governance Dept</td>
+            <td class="ecv ecv-unknown">
+              N/A
             </td>
-            <td class="deadline">{{ t.deadline or "—" }}</td>
-            <td class="tender-no">{{ t.tender_number or "—" }}</td>
+            <td class="deadline">2026-06-05</td>
+            <td class="tender-no">TEST/003</td>
             <td>
-              {% if t.nit_url %}<a href="{{ t.nit_url }}" target="_blank">View</a>{% else %}—{% endif %}
+              —
             </td>
           </tr>
-          {% endfor %}
+          
         </tbody>
       </table>
       <p class="section-empty-filter" id="empty-low_priority">No low priority tenders match the current filters.</p>
     </details>
   </div>
-  {% endif %}
+  
 
 </div>
 
 <div class="footer">
-  Classification by Claude AI ({{ "claude-haiku-4-5" }}) &mdash; manual review recommended before applying.
+  Classification by Claude AI (claude-haiku-4-5) &mdash; manual review recommended before applying.
   &nbsp;|&nbsp; Portal: <a href="https://kppp.karnataka.gov.in/#/portal/searchTender/live" target="_blank">kppp.karnataka.gov.in</a>
 </div>
 
