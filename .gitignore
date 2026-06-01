@@ -7,3 +7,4 @@ __pycache__/
 .venv/
 credentials.json
 token.json
+.tenders_cache.json
